@@ -47,6 +47,12 @@ async function run() {
       const facility=req.body;
       const result=await facilityCollection.insertOne(facility);
       res.json(result)
+    });
+
+    app.post('/booking', async(req, res)=>{
+      const bookingData=req.body;
+      const result=await facilityCollection.insertOne(bookingData);
+      res.json(result);
     })
 
 
