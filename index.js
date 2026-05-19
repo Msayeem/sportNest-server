@@ -30,18 +30,24 @@ async function run() {
     await client.connect();
 
         const db = client.db("sportnest");
-            const destinationCollection = db.collection("facilities");
+            const facilityCollection = db.collection("facilities");
 
             app.get('/facilities', async(req, res)=>{
-                const result=await destinationCollection.find().toArray();
+                const result=await facilityCollection.find().toArray();
                 res.json(result);
             });
 
                app.get('/facilities/:id', async (req, res) => {
       const { id } = req.params;
-      const result = await destinationCollection.findOne({ _id: new ObjectId(id) });
+      const result = await facilityCollection.findOne({ _id: new ObjectId(id) });
       res.json(result);
     });
+
+    app.post('/facilities', async(req, res)=>{
+      const facility=req.body;
+      const result=await facilityCollection.insertOne(facility);
+      res.json(result)
+    })
 
 
 
