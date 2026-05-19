@@ -31,6 +31,7 @@ async function run() {
 
         const db = client.db("sportnest");
             const facilityCollection = db.collection("facilities");
+            const bookingCollection = db.collection("bookings");
 
             app.get('/facilities', async(req, res)=>{
                 const result=await facilityCollection.find().toArray();
@@ -49,10 +50,21 @@ async function run() {
       res.json(result)
     });
 
-    app.post('/booking', async(req, res)=>{
+    app.post('/bookings', async(req, res)=>{
       const bookingData=req.body;
-      const result=await facilityCollection.insertOne(bookingData);
+      const result=await bookingCollection.insertOne(bookingData);
       res.json(result);
+    });
+
+    app.get('/bookings', async(req, res)=>{
+      const result=await bookingCollection.find().toArray();
+      res.json(result);
+    });
+
+    app.delete('/bookings', async(req, res)=>{
+const {id}=req.params;
+const result =await bookingCollection.deleteOne({_id: new ObjectId(id)});
+res.json(result);
     })
 
 
