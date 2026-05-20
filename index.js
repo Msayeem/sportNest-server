@@ -2,6 +2,7 @@ const express = require('express')
 const dotenv = require('dotenv');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { createRemoteJWKSet, jwtVerify } = require('jose-cjs');
 
 
 dotenv.config();
@@ -24,6 +25,33 @@ const client = new MongoClient(uri, {
   }
 });
 
+const JWKS = createRemoteJWKSet(
+  new URL('http://localhost:3000/api/auth/jwks')
+);
+
+const verifyToken = async (req, res, next) => {
+  const authHeader = req?.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  try {
+    const { payload } = await jwtVerify(token, JWKS);
+    req.user = payload; // ✅ Optionally attach payload for use in routes
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid or expired token" });
+  }
+};
+
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -34,7 +62,19 @@ async function run() {
             const bookingCollection = db.collection("bookings");
 
             app.get('/facilities', async(req, res)=>{
-                const result=await facilityCollection.find().toArray();
+const { search, sport } = req.query;
+
+  const query = {};
+
+  if (search) {
+    query.facilityName = { $regex: search, $options: 'i' };
+  }
+
+  if (sport) {
+    query.sport = { $in: [sport] };
+  }
+
+                const result=await facilityCollection.find(query).toArray();
                 res.json(result);
             });
 
@@ -44,30 +84,30 @@ async function run() {
       res.json(result);
     });
 
-    app.post('/facilities', async(req, res)=>{
+    app.post('/facilities',verifyToken, async(req, res)=>{
       const facility=req.body;
       const result=await facilityCollection.insertOne(facility);
       res.json(result)
     });
 
-    app.post('/bookings', async(req, res)=>{
+    app.post('/bookings',verifyToken, async(req, res)=>{
       const bookingData=req.body;
       const result=await bookingCollection.insertOne(bookingData);
       res.json(result);
     });
 
-    app.get('/bookings', async(req, res)=>{
+    app.get('/bookings',verifyToken, async(req, res)=>{
       const result=await bookingCollection.find().toArray();
       res.json(result);
     });
 
-   app.delete('/bookings/:id', async(req, res)=>{
+   app.delete('/bookings/:id',verifyToken, async(req, res)=>{
 const {id}=req.params;
 const result =await bookingCollection.deleteOne({_id: new ObjectId(id)});
 res.json(result);
     });
 
-        app.patch('/facilities/:id', async (req, res) => {
+        app.patch('/facilities/:id',verifyToken, async (req, res) => {
       const { id } = req.params;
       const updateData = req.body;
       const result = await facilityCollection.updateOne(
@@ -77,29 +117,13 @@ res.json(result);
       res.json(result);
     });
 
-    app.delete('/facilities/:id', async(req, res)=>{
+    app.delete('/facilities/:id', verifyToken, async(req, res)=>{
 const {id}=req.params;
 const result =await facilityCollection.deleteOne({_id: new ObjectId(id)});
 res.json(result);
     });
 
-    app.get('/facilities', async (req, res) => {
-  const { search, sport } = req.query;
 
-  const query = {};
-
-  if (search) {
-    query.facilityName = { $regex: search, $options: 'i' };
-  }
-
-
-  if (sport) {
-    query.sport = { $in: [sport] };
-  }
-
-  const result = await facilityCollection.find(query).toArray();
-  res.json(result);
-});
 
 
 
