@@ -83,6 +83,24 @@ const result =await facilityCollection.deleteOne({_id: new ObjectId(id)});
 res.json(result);
     });
 
+    app.get('/facilities', async (req, res) => {
+  const { search, sport } = req.query;
+
+  const query = {};
+
+  if (search) {
+    query.facilityName = { $regex: search, $options: 'i' };
+  }
+
+
+  if (sport) {
+    query.sport = { $in: [sport] };
+  }
+
+  const result = await facilityCollection.find(query).toArray();
+  res.json(result);
+});
+
 
 
 
