@@ -61,11 +61,21 @@ async function run() {
       res.json(result);
     });
 
-    app.delete('/bookings', async(req, res)=>{
+   app.delete('/bookings/:id', async(req, res)=>{
 const {id}=req.params;
 const result =await bookingCollection.deleteOne({_id: new ObjectId(id)});
 res.json(result);
-    })
+    });
+
+        app.patch('/facilities/:id', async (req, res) => {
+      const { id } = req.params;
+      const updateData = req.body;
+      const result = await facilityCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateData }
+      );
+      res.json(result);
+    });
 
 
 
