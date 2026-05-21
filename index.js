@@ -10,7 +10,11 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT;
 
-app.use(cors())
+app.use(cors({
+  origin: process.env.SITE_URL, // your frontend vercel URL
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  credentials: true
+}));
 app.use(express.json());
 
 
