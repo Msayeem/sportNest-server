@@ -8,7 +8,7 @@ const { createRemoteJWKSet, jwtVerify } = require('jose-cjs');
 
 dotenv.config();
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 5000;
 
 app.use(cors({
   origin: process.env.SITE_URL, // your frontend vercel URL
