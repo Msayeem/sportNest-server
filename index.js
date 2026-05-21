@@ -99,13 +99,13 @@ const { search, sport } = req.query;
       res.json(result);
     });
 
-    app.post('/facilities', async(req, res)=>{
+    app.post('/facilities',verifyToken, async(req, res)=>{
       const facility=req.body;
       const result=await facilityCollection.insertOne(facility);
       res.json(result)
     });
 
-    app.post('/bookings', async(req, res)=>{
+    app.post('/bookings',verifyToken, async(req, res)=>{
       const bookingData=req.body;
       const result=await bookingCollection.insertOne(bookingData);
       res.json(result);
@@ -116,13 +116,13 @@ const { search, sport } = req.query;
       res.json(result);
     });
 
-   app.delete('/bookings/:id', async(req, res)=>{
+   app.delete('/bookings/:id',verifyToken, async(req, res)=>{
 const {id}=req.params;
 const result =await bookingCollection.deleteOne({_id: new ObjectId(id)});
 res.json(result);
     });
 
-        app.patch('/facilities/:id', async (req, res) => {
+        app.patch('/facilities/:id',verifyToken, async (req, res) => {
       const { id } = req.params;
       const updateData = req.body;
       const result = await facilityCollection.updateOne(
@@ -132,7 +132,7 @@ res.json(result);
       res.json(result);
     });
 
-    app.delete('/facilities/:id', async(req, res)=>{
+    app.delete('/facilities/:id',verifyToken, async(req, res)=>{
 const {id}=req.params;
 const result =await facilityCollection.deleteOne({_id: new ObjectId(id)});
 res.json(result);
