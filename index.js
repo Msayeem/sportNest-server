@@ -5,16 +5,18 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const { createRemoteJWKSet, jwtVerify } = require('jose-cjs');
 
 
+
 dotenv.config();
 const app = express();
-const port = 5000;
+const port = process.env.PORT;
 
-app.use(cors());
+app.use(cors())
 app.use(express.json());
 
 
 
-const uri = "mongodb+srv://sportNest:3QZuhobvxcAve6FE@cluster0.zltkvxu.mongodb.net/?appName=Cluster0";
+
+const uri = process.env.MONGO_URI;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -26,29 +28,38 @@ const client = new MongoClient(uri, {
 });
 
 const JWKS = createRemoteJWKSet(
-  new URL('http://localhost:3000/api/auth/jwks')
+  new URL(`${process.env.SITE_URL}/api/auth/jwks`)
 );
 
 const verifyToken = async (req, res, next) => {
   const authHeader = req?.headers.authorization;
 
-  if (!authHeader) {
-    return res.status(401).json({ message: "Unauthorized" });
+  if(authHeader==process.env.API_SECRET){
+      next()
+      
   }
 
-  const token = authHeader.split(" ")[1];
+else{
+  return res.status(401).json({ message: "Unauthorized" });
+}
 
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
+  // if (!authHeader) {
+  //   return res.status(401).json({ message: "Unauthorized" });
+  // }
 
-  try {
-    const { payload } = await jwtVerify(token, JWKS);
-    req.user = payload; // ✅ Optionally attach payload for use in routes
-    next();
-  } catch (err) {
-    return res.status(401).json({ message: "Invalid or expired token" });
-  }
+  // const token = authHeader.split(" ")[1];
+
+  // if (!token) {
+  //   return res.status(401).json({ message: "Unauthorized" });
+  // }
+
+  // try {
+  //   const { payload } = await jwtVerify(token, JWKS);
+  //   console.log(payload)
+  //   next();
+  // } catch (err) {
+  //   return res.status(401).json({ message: "Invalid or expired token" });
+  // }
 };
 
 
@@ -78,7 +89,7 @@ const { search, sport } = req.query;
                 res.json(result);
             });
 
-               app.get('/facilities/:id', async (req, res) => {
+               app.get('/facilities/:id',verifyToken, async (req, res) => {
       const { id } = req.params;
       const result = await facilityCollection.findOne({ _id: new ObjectId(id) });
       res.json(result);
@@ -117,7 +128,7 @@ res.json(result);
       res.json(result);
     });
 
-    app.delete('/facilities/:id', verifyToken, async(req, res)=>{
+    app.delete('/facilities/:id',verifyToken, async(req, res)=>{
 const {id}=req.params;
 const result =await facilityCollection.deleteOne({_id: new ObjectId(id)});
 res.json(result);
@@ -144,7 +155,7 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-  res.send('Hello World!')
+  res.send('Server is working!')
 })
 
 app.listen(port, () => {
